@@ -33,11 +33,11 @@ contract SoladayToken is ERC20 {
         emit SoladayTokenDeployed(address(this));
     }
 
-    function mint(address to, uint256 value) public {
+    function mint(address to, uint256 value) public virtual {
         _mint(to, value);
     }
 
-    function burn(address from, uint256 value) public {
+    function burn(address from, uint256 value) public virtual {
         _burn(from, value);
     }
 }

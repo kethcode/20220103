@@ -5,10 +5,12 @@ const main = async () => {
     
     const [deployer] = await ethers.getSigners();
 
+    console.log("Deploying SoladayToken");
     const tokenFactory = await ethers.getContractFactory("SoladayToken");
     const tokenContract = await tokenFactory.deploy();
     await tokenContract.deployed();
 
+    console.log("Deploying SoladayRegistry");
     const registryFactory = await ethers.getContractFactory("SoladayRegistry");
     const registryContract = await registryFactory.deploy(tokenContract.address);
     await registryContract.deployed();
@@ -23,7 +25,14 @@ const main = async () => {
     console.log("Verifying on Etherscan");
 
     await hre.run("verify:verify", {
+        address: tokenContract.address,
+      });
+
+    await hre.run("verify:verify", {
         address: registryContract.address,
+        constructorArguments: [
+            tokenContract.address
+        ],
       });
 
     console.log("Verified on Etherscan");
