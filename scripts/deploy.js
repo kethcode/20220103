@@ -5,12 +5,17 @@ const main = async () => {
     
     const [deployer] = await ethers.getSigners();
 
-    const registryFactory = await hre.ethers.getContractFactory("SoladayRegistry");
-    const registryContract = await registryFactory.deploy();
+    const tokenFactory = await ethers.getContractFactory("SoladayToken");
+    const tokenContract = await tokenFactory.deploy();
+    await tokenContract.deployed();
+
+    const registryFactory = await ethers.getContractFactory("SoladayRegistry");
+    const registryContract = await registryFactory.deploy(tokenContract.address);
     await registryContract.deployed();
 
-    console.log("Deployed:", registryContract.address);
-    console.log("Deployer:", deployer.address);
+    console.log("Token Contract:   ", tokenContract.address);
+    console.log("Registry Contract:", registryContract.address);
+    console.log("Deployer:         ", deployer.address);
 
     console.log("Waiting for bytecode to propogate (60sec)");
     await delay(60000);

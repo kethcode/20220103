@@ -2,7 +2,9 @@
 pragma solidity >=0.8.0 <=0.8.11;
 
 import "./SoladayContract.sol";
+import "./SoladayToken.sol";
 
+// @transmissions11 custom errors vs require() messages, save some gas
 error noReentracy();
 error invalidAddress();
 
@@ -17,7 +19,16 @@ contract SoladayRegistry is SoladayContract {
     * Events *
     **********/
 
-    /**     * Announce a Registration
+    /**     * Announce Registry Deployment 
+     * @param _contract Address of deployed Contract
+     * @param _tokenContract Address of token contract used to issue rewards
+     */
+    event SoladayRegistryDeployed(
+        address indexed _contract,
+        address indexed _tokenContract
+    );
+
+    /**     * Announce a general Registration
      * @param _contract Address of deployed Contract
      * @param _deployer Address of account that deployed the Contract
      */
@@ -33,6 +44,7 @@ contract SoladayRegistry is SoladayContract {
     address[] deployers;
     mapping( address => address[] ) deployments;
     bool private locked;
+    address private tokenContract;
 
     /*******************
     * Public Functions *
@@ -49,6 +61,12 @@ contract SoladayRegistry is SoladayContract {
         locked = true;
         _;
         locked = false;
+    }
+
+    constructor(address _tokenContract) validAddress(_tokenContract)
+    {
+        tokenContract =  _tokenContract;
+        emit SoladayRegistryDeployed(address(this), tokenContract);
     }
 
     function getDeployers() public view returns (address[] memory) {
@@ -93,6 +111,9 @@ contract SoladayRegistry is SoladayContract {
         if(!duplicateFound)
         {
             deployments[_deployer].push(_contract);
+            
+            SoladayToken token = SoladayToken(tokenContract);
+            token.mint(_deployer, 1e18);
 
             emit SoladayContractRegistered(
                 _contract,
@@ -100,4 +121,18 @@ contract SoladayRegistry is SoladayContract {
             );
         }
     }
+
+    // noticed both transmissions11 and m1guelpf use ERC165 interface declarations
+    // seems like a good idea to follow suit
+    // function supportsInterface(bytes4 interfaceId)
+    //     public
+    //     pure
+    //     override(LilOwnable, ERC20)
+    //     returns (bool)
+    // {
+    //     return
+    //         interfaceId == 0x7f5828d0 || // ERC165 Interface ID for ERC173
+    //         interfaceId == 0x80ac58cd || // ERC165 Interface ID for ERC20
+    //         interfaceId == 0x5b5e139f || // ERC165 Interface ID for ERC165
+    // }
 }
